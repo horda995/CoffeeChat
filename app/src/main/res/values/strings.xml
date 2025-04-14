@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">CoffeeChat!</string>
+    <string name="registrationPasswordHint">Password</string>
+    <string name="registrationConfirmPasswordHint">Confirm password</string>
+    <string name="registrationUserNameHint">Username</string>
+    <string name="registrationEmailHint">E-mail</string>
+    <string name="buttonRegistrationText">Register</string>
+    <string name="buttonCancelText">Cancel</string>
+    <string name="buttonLoginText">Login</string>
+    <string name="buttonGoToRegistrationText">Not a member? Please, register!</string>
+    <string name="backToLoginButtonText">Already a member? Please, log in!</string>
+    <string name="LoginPasswordHint">Password</string>
+    <string name="loginTextHint">E-mail</string>
+    <string name="appLogoDescription">app_logo_coffee_mug</string>
+    <string name="appTitleString">CoffeeChat!</string>
+    <string name="logOutButton">Log out</string>
+    <string name="welcomeTextString">Welcome, User!</string>
+</resources>

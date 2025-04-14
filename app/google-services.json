@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "582027579461",
+    "project_id": "coffeechat-71f10",
+    "storage_bucket": "coffeechat-71f10.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:582027579461:android:2b02b16fb0491e3152132c",
+        "android_client_info": {
+          "package_name": "com.coffeechat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbD-YUKyrSHch7_X0mjWBcni52kMTA4i4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
