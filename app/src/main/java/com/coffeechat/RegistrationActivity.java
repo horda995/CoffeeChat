@@ -11,32 +11,37 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class RegistrationActivity extends AppCompatActivity {
     private final String LOG_TAG = "RegistrationActivity";
     EditText registrationEmail;
-    EditText registrationUserName;
     EditText registrationPassword;
     EditText registrationConfirmPassword;
-    private FirebaseAuth mailAuth;
+
+    private FirebaseAuth mAuth;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_registration);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.setUsernameMain), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
         registrationEmail = findViewById(R.id.registrationEmail);
-        registrationUserName = findViewById(R.id.registrationUserName);
         registrationPassword = findViewById(R.id.registrationPassword);
         registrationConfirmPassword = findViewById(R.id.registrationConfirmPassword);
-        mailAuth = FirebaseAuth.getInstance();
+        mAuth = FirebaseAuth.getInstance();
     }
 
     public void buttonBackToLoginOnClick(View view) {
@@ -45,20 +50,19 @@ public class RegistrationActivity extends AppCompatActivity {
         finish();
     }
 
-    public void goToChatListActivity() {
-        Intent moveToChatList = new Intent(RegistrationActivity.this, ChatListActivity.class);
-        startActivity(moveToChatList);
+    public void goToSetUsernameActivity() {
+        Intent moveToSetUsername = new Intent(RegistrationActivity.this, SetUsernameActivity.class);
+        startActivity(moveToSetUsername);
         finish();
     }
     public void buttonRegisterOnClick(View view) {
         try {
             String email = registrationEmail.getText().toString();
-            String userName = registrationUserName.getText().toString();
             String password = registrationPassword.getText().toString();
             String confirmPassword = registrationConfirmPassword.getText().toString();
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
 
             InputChecker.validateNotNullOrEmpty(email, "E-mail");
-            InputChecker.validateNotNullOrEmpty(userName, "Username");
             InputChecker.validateNotNullOrEmpty(password, "Password");
             InputChecker.validateNotNullOrEmpty(confirmPassword, "Confirmed password");
 
@@ -67,12 +71,30 @@ public class RegistrationActivity extends AppCompatActivity {
                 Toast.makeText(this, "Passwords do not match!", Toast.LENGTH_SHORT).show();
                 return;
             }
-            mailAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
+
+            mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
                 if (task.isSuccessful()) {
                     Log.d(LOG_TAG, "Account creation is successful");
-                    goToChatListActivity();
+
+                    FirebaseUser user = mAuth.getCurrentUser();
+                    if (user != null) {
+                        String uid = user.getUid();
+                        Map<String, Object> userMap = new HashMap<>();
+                        userMap.put("email", email);
+
+                        db.collection("users").document(uid)
+                                .set(userMap)
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d(LOG_TAG, "User email successfully saved to Firestore");
+                                    goToSetUsernameActivity();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(LOG_TAG, "Error saving user email to Firestore: " + e.getMessage());
+                                    Toast.makeText(this, "Failed to save e-mail", Toast.LENGTH_SHORT).show();
+                                });
+                    }
                 } else {
-                    Log.d(LOG_TAG, "Account creation failed: " + Objects.requireNonNull(task.getException()).getMessage());
+                    Log.e(LOG_TAG, "Account creation failed: " + Objects.requireNonNull(task.getException()).getMessage());
                     Toast.makeText(this, "Registration failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                 }
             });

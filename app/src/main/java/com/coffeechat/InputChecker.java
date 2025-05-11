@@ -7,7 +7,7 @@ public class InputChecker {
     //Ezzel a fugvennyel vizsgaljuk meg, ures-e egy input mezo
     public static void validateNotNullOrEmpty(String value, String fieldName) {
         if (value == null || value.isEmpty()) {
-            Log.e(LOG_TAG, fieldName + " cannot be null or empty.");
+            Log.e(LOG_TAG, fieldName + " cannot be empty!");
             throw new IllegalArgumentException(fieldName + " cannot be null or empty.");
         }
     }
