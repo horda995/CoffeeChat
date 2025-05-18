@@ -4,4 +4,14 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
+    <style name="CoffeeDialogTheme" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
+        <item name="android:background">@android:color/white</item>
+        <item name="android:windowMinWidthMajor">60%</item>
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
+
+    <style name="CoffeeDialogButton" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="backgroundTint">@color/coffeeBrown</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
 </resources>

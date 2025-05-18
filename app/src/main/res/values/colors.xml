@@ -2,7 +2,8 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="latteBrown">#A1866F</color>
+    <color name="latteBrown">#7A6351</color>
     <color name="coffeeBrown">#2B1B13</color>
     <color name="beige">#C0B299</color>
+    <color name="dirty_white">#E8E4C9</color>
 </resources>

@@ -6,10 +6,13 @@
         android:name="android.hardware.camera"
         android:required="false" />
 
-    <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
+
     <application
+        android:name=".CoffeeChatApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -19,6 +22,18 @@
         android:supportsRtl="true"
         android:theme="@style/coffeeChatTheme"
         tools:targetApi="31">
+        <activity
+            android:name=".ChatActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PeopleActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name=".ChatListActivity"
             android:exported="false" />
@@ -32,7 +47,7 @@
             android:name=".SetUsernameActivity"
             android:exported="false" />
         <activity
-            android:name=".SetProfilePictureActivity"
+            android:name=".SetAvatarActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
@@ -43,9 +58,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
+            android:authorities="com.coffeechat.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

@@ -10,7 +10,7 @@
         android:id="@+id/setProfilePictureMain"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:context=".SetProfilePictureActivity">
+        tools:context=".SetAvatarActivity">
 
         <TextView
             android:id="@+id/appLogoLogin"
@@ -23,7 +23,10 @@
             android:textSize="55sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            android:shadowDx="7"
+            android:shadowRadius="5"
+            android:shadowColor="@color/dirty_white"/>
 
         <TextView
             android:id="@+id/profilePictureLabel"
@@ -40,7 +43,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/avatarImageView"
+            android:id="@+id/setAvatarImageView"
             android:layout_width="200dp"
             android:layout_height="200dp"
             android:layout_gravity="center_horizontal"
@@ -52,16 +55,16 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/profilePictureLabel"
             app:shapeAppearanceOverlay="@style/CircleImageView"
-            app:strokeColor="@color/coffeeBrown"
+            app:strokeColor="@color/black"
             app:strokeWidth="1.8dp" />
 
         <GridLayout
-            android:id="@+id/profilePictureButtonGrid"
+            android:id="@+id/changeProfilePictureButtonGrid"
             android:layout_width="140dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="25dp"
             android:columnCount="2"
-            app:layout_constraintTop_toBottomOf="@+id/avatarImageView"
+            app:layout_constraintTop_toBottomOf="@+id/setAvatarImageView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
@@ -75,8 +78,7 @@
                 android:contentDescription="@string/cameraIconDescription"
                 android:onClick="openCameraOnClick"
                 android:scaleType="fitCenter"
-                android:src="@drawable/camera"
-                app:tint="@color/coffeeBrown" />
+                android:src="@drawable/camera"/>
 
             <ImageView
                 android:id="@+id/galleryIcon"
@@ -88,8 +90,7 @@
                 android:contentDescription="@string/galleryIconDescription"
                 android:onClick="openGalleryOnClick"
                 android:scaleType="fitCenter"
-                android:src="@drawable/folder"
-                app:tint="@color/coffeeBrown" />
+                android:src="@drawable/folder"/>
         </GridLayout>
 
         <Button
@@ -100,12 +101,13 @@
             android:layout_marginEnd="32dp"
             android:layout_marginTop="20dp"
             android:backgroundTint="@color/coffeeBrown"
+            android:textColor="@color/white"
             android:text="@string/buttonForwardText"
             android:onClick="forwardButtonOnClick"
             tools:ignore="VisualLintButtonSize"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/profilePictureButtonGrid" />
+            app:layout_constraintTop_toBottomOf="@+id/changeProfilePictureButtonGrid" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

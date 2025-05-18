@@ -1,119 +1,127 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/setUsernameMain"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:contentDescription="@string/chatlistHint"
-    tools:context=".ChatListActivity">
+    android:id="@+id/chatListMain">
 
-    <GridLayout
-        android:id="@+id/chatTopGrid"
+    <View
+        android:id="@+id/startDivider"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:columnCount="3"
-        android:orientation="horizontal"
-        android:padding="10dp"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/avatarImageView"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:layout_row="0"
-            android:layout_column="0"
-            android:layout_margin="0.5dp"
-            android:padding="2dp"
-            android:scaleType="centerCrop"
-            android:layout_gravity="center"
-            android:src="@drawable/coffee_default_avatar"
-            app:shapeAppearanceOverlay="@style/CircleImageView"
-            app:strokeColor="@color/coffeeBrown"
-            app:strokeWidth="1.8dp"/>
-
-        <TextView
-            android:id="@+id/usernameLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_row="0"
-            android:layout_column="1"
-            android:layout_gravity="center"
-            android:paddingStart="5dp"
-            android:paddingEnd="5dp"
-            android:fontFamily="sans-serif-black"
-            android:text="@string/usernameLabelString"
-            android:textColor="@color/coffeeBrown"
-            android:textSize="25sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <GridLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_row="0"
-            android:layout_column="2"
-            android:layout_gravity="end"
-            android:columnCount="2"
-            android:orientation="horizontal"
-            android:padding="10dp">
-
-            <ImageView
-                android:id="@+id/settingsIcon"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_row="0"
-                android:layout_column="1"
-                android:layout_gravity="end"
-                android:background="@android:color/transparent"
-                android:contentDescription="@string/userSettingsIcon"
-                android:scaleType="fitCenter"
-                android:src="@drawable/settings"
-                app:tint="@color/coffeeBrown"
-                android:onClick="settingsIconOnClick"/>
-
-            <ImageView
-                android:id="@+id/newChatIcon"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_row="0"
-                android:layout_column="0"
-                android:layout_gravity="end"
-                android:background="@android:color/transparent"
-                android:contentDescription="@string/startNewChat"
-                android:scaleType="fitCenter"
-                android:src="@drawable/new_chat"
-                app:tint="@color/coffeeBrown"
-                android:onClick="newChatIconOnClick"/>
-
-        </GridLayout>
-
-    </GridLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/chatRecyclerView"
-        android:contentDescription="@string/chatListDescription"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintTop_toBottomOf="@id/chatTopGrid"
-        app:layout_constraintBottom_toTopOf="@id/logOutButton"
+        android:layout_height="2dp"
+        android:background="@color/coffeeBrown"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <Button
-        android:id="@+id/logOutButton"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/chatListTopLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
-        android:backgroundTint="@color/coffeeBrown"
-        android:onClick="buttonLogOutOnClick"
-        android:text="@string/logOutButton"
-        android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:background="@color/dirty_white"
+        android:padding="10dp"
+        app:layout_constraintTop_toBottomOf="@id/startDivider">
 
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/AvatarImageView"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/coffee_default_avatar"
+            android:padding="5dp"
+            app:shapeAppearanceOverlay="@style/CircleImageView"
+            app:strokeColor="@color/black"
+            app:strokeWidth="1.8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <TextView
+            android:id="@+id/usernameLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/welcomeString"
+            android:textColor="@color/coffeeBrown"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginEnd="5dp"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-black"
+            app:layout_constraintStart_toEndOf="@id/AvatarImageView"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/newChatIcon"
+            android:paddingStart="5dp"
+            android:paddingEnd="5dp"/>
+
+        <ImageView
+            android:id="@+id/newChatIcon"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/startNewChat"
+            android:onClick="newChatIconOnClick"
+            android:scaleType="fitCenter"
+            android:src="@drawable/new_chat"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/friendsIcon"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/friendsIcon"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/friendsIconDescription"
+            android:onClick="friendsIconOnClick"
+            android:scaleType="fitCenter"
+            android:src="@drawable/friends"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/settingsIcon"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/settingsIcon"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/userSettingsIcon"
+            android:onClick="settingsIconOnClick"
+            android:scaleType="fitCenter"
+            android:src="@drawable/settings"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:id="@+id/topDivider"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/coffeeBrown"
+        app:layout_constraintTop_toBottomOf="@id/chatListTopLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/chatListRecyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="2dp"
+        android:contentDescription="@string/chatListDescription"
+        app:layout_constraintTop_toBottomOf="@id/topDivider"
+        app:layout_constraintBottom_toTopOf="@id/bottomDivider"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <View
+        android:id="@+id/bottomDivider"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/coffeeBrown"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
