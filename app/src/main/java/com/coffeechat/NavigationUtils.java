@@ -20,11 +20,12 @@ public class NavigationUtils {
         activity.finish();
     }
 
-    public static void moveToChatActivity(Activity activity, String username, String avatarUrl, String uid) {
+    public static void moveToChatActivity(Activity activity, String username, String avatarUrl, String uid, String chatId) {
         Intent moveToChat = new Intent(activity, ChatActivity.class);
         moveToChat.putExtra("username", username);
         moveToChat.putExtra("avatarUrl", avatarUrl);
         moveToChat.putExtra("uid", uid);
+        moveToChat.putExtra("chatId", chatId);
         activity.startActivity(moveToChat);
         activity.finish();
     }

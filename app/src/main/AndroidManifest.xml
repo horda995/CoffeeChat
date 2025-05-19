@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
 
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
@@ -26,17 +27,7 @@
         android:supportsRtl="true"
         android:theme="@style/coffeeChatTheme"
         tools:targetApi="31">
-        <service
-            android:name=".FirebaseNotificationService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
-        <service
-            android:name=".FirebaseNotificationJobService"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            android:exported="true" />
+        <receiver android:name=".ChatNotificationReceiver" />
         <activity
             android:name=".ChatActivity"
             android:exported="false" />

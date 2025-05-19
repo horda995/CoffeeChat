@@ -10,14 +10,12 @@ import android.widget.Toast;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
 
 import java.util.HashMap;
@@ -26,6 +24,27 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class FirebaseUtils {
+
+    public interface FirebaseChatIdCallback {
+        void onChatIdFound(String chatId);
+        void onChatNotFound();
+        void onError(Exception e);
+    }
+
+    public interface FirebaseUtilsCallback {
+        void onSuccess();
+        void onFailure(Exception e);
+    }
+
+    public interface FirestoreReadFieldCallback {
+        void onFieldRetrieved(Object value);
+        void onError(Exception e);
+    }
+
+    public  interface LoginCallback {
+        void onSuccess(FirebaseUser currentUser);
+        void onFailure(Exception exception);
+    }
 
     public static void checkAndUpdateEmailIfNeeded(Context context, FirebaseFirestore db, FirebaseAuth auth, String LOG_TAG) {
         SharedPreferences prefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
@@ -361,7 +380,7 @@ public class FirebaseUtils {
         }
     }
 
-    public static void addChatToChatCollection(FirebaseFirestore db, String chatId, ArrayList<String> userId, Runnable onComplete) {
+    public static void addChatToChatCollection(FirebaseFirestore db, String chatId, ArrayList<String> userId, String chatName, Runnable onComplete) {
         if (userId == null || chatId == null || chatId.isEmpty() || userId.isEmpty()) {
             Log.e("addChatToChatCollection", "Invalid input: users or chatId is null/empty");
             return;
@@ -375,6 +394,7 @@ public class FirebaseUtils {
                 if (onComplete != null) onComplete.run();
             } else {
                 HashMap<String, Object> chatData = new HashMap<>();
+                chatData.put("chatName", chatName);
                 chatData.put("uid", userId);
                 chatRef.set(chatData)
                         .addOnSuccessListener(aVoid -> {
@@ -405,47 +425,26 @@ public class FirebaseUtils {
     }
 
     public static void addMessageToFirestore(FirebaseFirestore db, String chatId, String sentByUid, String messageText, String soundUrl, EditText chatInput) {
-        addMessageWithUniqueId(db, chatId, sentByUid, messageText, soundUrl, 0, chatInput);
-    }
 
-    private static void addMessageWithUniqueId(FirebaseFirestore db, String chatId, String sentByUid, String messageText, String soundUrl, int attempt, EditText chatInput) {
-        if (attempt >= 5) {
-            Log.e("Firestore", "Failed to generate unique message ID after multiple attempts.");
-            return;
+        if(chatId != null && !chatId.isEmpty()) {
+            CollectionReference messageRef = db.collection("chats").document(chatId).collection("messages");
+
+            HashMap<String, Object> messageData = new HashMap<>();
+            messageData.put("chatId", chatId);
+            messageData.put("sentByUid", sentByUid);
+            messageData.put("messageText", messageText);
+            messageData.put("soundUrl", soundUrl);
+            messageData.put("timestamp", FieldValue.serverTimestamp());
+            chatInput.setText("");
+
+            messageRef.add(messageData).addOnSuccessListener(documentReference -> {
+                        Log.d("addMessageWithUniqueId", "Success" + documentReference.getId());
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("addMessageWithUniqueId", "Failure: " + e);
+                    });
         }
 
-        String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        int LENGTH = 20;
-        SecureRandom random = new SecureRandom();
-        StringBuilder sb = new StringBuilder(LENGTH);
-        for (int i = 0; i < LENGTH; i++) {
-            sb.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
-        }
-
-        String messageId = "msg_" + sb + "_id";
-
-        DocumentReference messageRef = db.collection("messages").document(messageId);
-
-        messageRef.get().addOnSuccessListener(documentSnapshot -> {
-            if (documentSnapshot.exists()) {
-                addMessageWithUniqueId(db, chatId, sentByUid, messageText, soundUrl, attempt + 1, chatInput);
-            } else {
-                HashMap<String, Object> data = new HashMap<>();
-                data.put("chatId", chatId);
-                data.put("sentByUid", sentByUid);
-                data.put("messageText", messageText);
-                data.put("soundUrl", soundUrl);
-                data.put("timestamp", FieldValue.serverTimestamp());
-                chatInput.setText("");
-                messageRef.set(data)
-                        .addOnSuccessListener(aVoid -> {
-                            Log.d("Firestore", "Message added successfully with ID: " + messageId);
-                        })
-                        .addOnFailureListener(e -> Log.e("Firestore", "Failed to add message", e));
-            }
-        }).addOnFailureListener(e -> {
-            Log.e("Firestore", "Failed to check for message ID existence", e);
-        });
     }
 
 }

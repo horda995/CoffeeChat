@@ -20,19 +20,28 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -41,9 +50,14 @@ public class ChatActivity extends AppCompatActivity {
     String username;
     String avatarUrl;
     String otherUserUid;
+
+    String chatId;
     ShapeableImageView avatarImageView;
     TextView chatUsernameTextView;
     EditText chatInput;
+    ChatAdapter adapter;
+    private UserViewModel chatViewModel;
+    RecyclerView chatRecyclerView;
 
     private MediaRecorder recorder;
     private File audioFile;
@@ -62,10 +76,16 @@ public class ChatActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        chatViewModel = new ViewModelProvider(this).get(UserViewModel.class);
+        chatRecyclerView = findViewById(R.id.chatRecyclerView);
+        adapter = new ChatAdapter();
+        chatRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        chatRecyclerView.setAdapter(adapter);
         micIcon = findViewById(R.id.sendSoundMessageIcon);
         username = getIntent().getStringExtra("username");
         avatarUrl = getIntent().getStringExtra("avatarUrl");
         otherUserUid = getIntent().getStringExtra("uid");
+        chatId = getIntent().getStringExtra("chatId");
         chatInput = findViewById(R.id.chatInput);
         avatarImageView = findViewById(R.id.chatAvatarImageView);
         chatUsernameTextView = findViewById(R.id.chatUsernameLabel);
@@ -83,6 +103,14 @@ public class ChatActivity extends AppCompatActivity {
         FirebaseUtils.checkLogin(ChatActivity.this);
         mDatabase = FirebaseFirestore.getInstance();
         FirebaseUtils.checkAndUpdateEmailIfNeeded(ChatActivity.this, mDatabase, mAuth, LOG_TAG);
+        chatRecyclerView.scrollToPosition(adapter.getItemCount());
+        chatViewModel.getChatMessages().observe(ChatActivity.this, messages -> {
+            chatRecyclerView.post(() -> {
+                chatRecyclerView.scrollToPosition(adapter.getItemCount() - 1);
+            });
+            adapter.submitList(messages);
+        });
+        chatViewModel.startListeningChat(mDatabase, chatId);
     }
 
 
@@ -102,18 +130,19 @@ public class ChatActivity extends AppCompatActivity {
             int index = random.nextInt(CHARACTERS.length());
             sb.append(CHARACTERS.charAt(index));
         }
-        String generated = "chat_" + sb.toString() + "_id";
+        String generated = "chat_" + sb + "_id";
         Log.d("chatIdGenerator", "Generated chatId: " + generated);
         return generated;
     }
     public void sendMessageOnClick(View view) {
         if(!chatInput.getText().toString().trim().isEmpty()) {
-            String soundUrl = "lol";
+
             String messageText = chatInput.getText().toString().trim();
-            FirebaseUtils.checkIfChatWithUserExists(mDatabase, coffeeChatUser.getUid(), otherUserUid, new FirebaseChatIdCallback() {
+            FirebaseUtils.checkIfChatWithUserExists(mDatabase, coffeeChatUser.getUid(), otherUserUid, new FirebaseUtils.FirebaseChatIdCallback() {
                 @Override
                 public void onChatIdFound(String chatId) {
-                    FirebaseUtils.addMessageToFirestore(mDatabase, chatId, coffeeChatUser.getUid(), messageText, soundUrl, chatInput);
+                    FirebaseUtils.addMessageToFirestore(mDatabase, chatId, coffeeChatUser.getUid(), messageText, null, chatInput);
+                    chatRecyclerView.scrollToPosition(adapter.getItemCount() - 1);
                 }
                 @Override
                 public void onChatNotFound() {
@@ -122,8 +151,9 @@ public class ChatActivity extends AppCompatActivity {
                         uidList.add(coffeeChatUser.getUid());
                         uidList.add(otherUserUid);
                         String chatId = chatIdGenerator();
-                        FirebaseUtils.addChatToChatCollection(mDatabase, chatId, uidList, () -> {
-                            FirebaseUtils.addMessageToFirestore(mDatabase, chatId, coffeeChatUser.getUid(), messageText, soundUrl, chatInput);
+                        FirebaseUtils.addChatToChatCollection(mDatabase, chatId, uidList, "", () -> {
+                            FirebaseUtils.addMessageToFirestore(mDatabase, chatId, coffeeChatUser.getUid(), messageText, null, chatInput);
+                            chatRecyclerView.scrollToPosition(adapter.getItemCount() - 1);
                         });
                     }
 
@@ -157,43 +187,65 @@ public class ChatActivity extends AppCompatActivity {
             recorder.prepare();
             recorder.start();
 
-            handler.postDelayed(this::stopRecordingAndUpload, 10_000);
+            handler.postDelayed(this::stopRecording, 10_000);
 
         } catch (IOException e) {
             Log.e(LOG_TAG, "IO error" + e);
         }
     }
 
-    private void stopRecordingAndUpload() {
+    private void stopRecording() {
         try {
             recorder.stop();
             recorder.release();
             recorder = null;
-
-            micIcon.setColorFilter(null);
-            uploadAudioToFirebase(audioFile);
+            micIcon.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_green_dark));
+            uploadAudioToFirebase(audioFile, chatId);
 
         } catch (Exception e) {
             Log.e(LOG_TAG, "error:" + e);
         }
     }
 
-    private void uploadAudioToFirebase(File file) {
+    private void uploadAudioToFirebase(File file, String chatId) {
         Uri fileUri = Uri.fromFile(file);
         String fileName = "voiceMessages/" + System.currentTimeMillis() + ".m4a";
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference(fileName);
 
-        FirebaseStorage.getInstance().getReference(fileName)
-                .putFile(fileUri)
+        storageRef.putFile(fileUri)
                 .addOnSuccessListener(taskSnapshot -> {
-                    taskSnapshot.getStorage().getDownloadUrl().addOnSuccessListener(uri -> {
-                        Toast.makeText(getApplicationContext(), "Audio uploaded", Toast.LENGTH_LONG).show();
+                    storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
                         String downloadUrl = uri.toString();
                         Log.d("AudioUpload", "Download URL: " + downloadUrl);
+                        Toast.makeText(getApplicationContext(), "Audio uploaded", Toast.LENGTH_LONG).show();
+                        FirebaseFirestore db = FirebaseFirestore.getInstance();
+                        DocumentReference chatRef = db.collection("chats").document(chatId);
+                        micIcon.setColorFilter(null);
+                        chatRef.get().addOnSuccessListener(documentSnapshot -> {
+                            if (!documentSnapshot.exists()) {
+                                ArrayList<String> uidList = new ArrayList<>();
+                                if(coffeeChatUser.getUid() != null && otherUserUid != null) {
+                                    uidList.add(coffeeChatUser.getUid());
+                                    uidList.add(otherUserUid);
+                                    String generatedChatId = chatIdGenerator();
+                                    FirebaseUtils.addChatToChatCollection(mDatabase, generatedChatId, uidList, "", () -> {
+                                        FirebaseUtils.addMessageToFirestore(mDatabase, generatedChatId, coffeeChatUser.getUid(), "", downloadUrl, chatInput);
+                                        chatRecyclerView.scrollToPosition(adapter.getItemCount() - 1);
+                                    });
+                                }
+                            } else {
+                                FirebaseUtils.addMessageToFirestore(mDatabase, chatId, coffeeChatUser.getUid(), "", downloadUrl, chatInput);
+                                chatRecyclerView.scrollToPosition(adapter.getItemCount() - 1);
+                            }
+                        }).addOnFailureListener(e -> Log.e("Firestore", "Failed to get chat doc", e));
                     });
                 })
-                .addOnFailureListener(e -> {
-                    Log.e("AudioUpload", "Upload failed", e);
-                });
+                .addOnFailureListener(e -> Log.e("AudioUpload", "Upload failed", e));
+    }
+
+    protected void onDestroy() {
+        super.onDestroy();
+        adapter.stopPlayback();
     }
 
 }

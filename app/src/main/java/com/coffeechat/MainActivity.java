@@ -1,13 +1,20 @@
 package com.coffeechat;
 
+
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.animation.BounceInterpolator;
 
 import androidx.annotation.NonNull;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
@@ -33,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
         ConstraintLayout mainLayout = findViewById(R.id.setUsernameMain);
         mainLayout.setTranslationY(-300f);
         configureBounceAnimator(mainLayout);
+        scheduleChatNotificationAlarm(this);
     }
 
     protected void onStart(){
@@ -43,9 +51,57 @@ public class MainActivity extends AppCompatActivity {
         bounceAnimator.start();
     }
 
+
+    public void scheduleChatNotificationAlarm(Context context) {
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+        if (alarmManager == null) {
+            Log.e(LOG_TAG, "AlarmManager is null, cannot schedule alarm");
+            return;
+        }
+
+        Intent intent = new Intent(context, ChatNotificationReceiver.class);
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(
+                context,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        long interval = 60 * 1000L;
+        long startTime = System.currentTimeMillis() + interval;
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            if (alarmManager.canScheduleExactAlarms()) {
+                try {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, startTime, alarmIntent);
+                    Log.d(LOG_TAG, "Chat notification alarm scheduled (exact)");
+                } catch (SecurityException e) {
+                    Log.e(LOG_TAG, "SecurityException scheduling exact alarm", e);
+                    // Fallback to inexact alarm
+                    alarmManager.set(AlarmManager.RTC_WAKEUP, startTime, alarmIntent);
+                    Log.d(LOG_TAG, "Chat notification alarm scheduled (inexact fallback)");
+                }
+            } else {
+                Log.w(LOG_TAG, "Cannot schedule exact alarms, scheduling inexact alarm instead");
+                alarmManager.set(AlarmManager.RTC_WAKEUP, startTime, alarmIntent);
+            }
+        } else {
+            try {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, startTime, alarmIntent);
+                Log.d(LOG_TAG, "Chat notification alarm scheduled (pre-API31)");
+            } catch (SecurityException e) {
+                Log.e(LOG_TAG, "SecurityException scheduling exact alarm pre-API31", e);
+                alarmManager.set(AlarmManager.RTC_WAKEUP, startTime, alarmIntent);
+                Log.d(LOG_TAG, "Chat notification alarm scheduled (inexact fallback pre-API31)");
+            }
+        }
+    }
+
     private void checkLoginOnMainActivity(){
         if (mUser != null && !mUser.getUid().isEmpty()) {
-            FirebaseUtils.readFieldFromFirestore(mDatabase, "users", mUser.getUid(), "username", new FirestoreReadFieldCallback() {
+            scheduleChatNotificationAlarm(this);
+            FirebaseUtils.readFieldFromFirestore(mDatabase, "users", mUser.getUid(), "username", new FirebaseUtils.FirestoreReadFieldCallback() {
                 public void onFieldRetrieved(Object value) {
                     if (value != null) {
                         String username = value.toString();
@@ -75,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadDataDuringAnimation() {
         if (mUser != null && !mUser.getUid().isEmpty()) {
-            FirebaseUtils.readFieldFromFirestore(mDatabase, "users", mUser.getUid(), "email", new FirestoreReadFieldCallback() {
+            FirebaseUtils.readFieldFromFirestore(mDatabase, "users", mUser.getUid(), "email", new FirebaseUtils.FirestoreReadFieldCallback() {
                 @Override
                 public void onFieldRetrieved(Object value) {
                     String email = value.toString();

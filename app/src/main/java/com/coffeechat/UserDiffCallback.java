@@ -3,6 +3,7 @@ package com.coffeechat;
 import androidx.recyclerview.widget.DiffUtil;
 
 import java.util.List;
+import java.util.Objects;
 
 public class UserDiffCallback extends DiffUtil.Callback {
     private final List<OtherUser> oldList;
@@ -25,12 +26,13 @@ public class UserDiffCallback extends DiffUtil.Callback {
 
     @Override
     public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-        return oldList.get(oldItemPosition).getUserName()
-                .equals(newList.get(newItemPosition).getUserName());
+        String oldUid = oldList.get(oldItemPosition).getUid();
+        String newUid = newList.get(newItemPosition).getUid();
+        return oldUid != null && oldUid.equals(newUid);
     }
 
     @Override
     public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-        return oldList.get(oldItemPosition).equals(newList.get(newItemPosition));
+        return Objects.equals(oldList.get(oldItemPosition), newList.get(newItemPosition));
     }
 }

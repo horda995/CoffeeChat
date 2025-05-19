@@ -141,7 +141,7 @@ public class ImageUtils {
                         HashMap<String, Object> userMap = new HashMap<>();
                         userMap.put("avatarPicture", downloadUrl);
                         Log.d(LOG_TAG, "Avatar uploaded to storage");
-                        FirebaseUtils.updateCollectionOnFirestore(db, "users", user.getUid(), userMap, LOG_TAG, new FirebaseUtilsCallback() {
+                        FirebaseUtils.updateCollectionOnFirestore(db, "users", user.getUid(), userMap, LOG_TAG, new FirebaseUtils.FirebaseUtilsCallback() {
                             @Override
                             public void onSuccess() {
                                 Log.d(LOG_TAG, "Avatar URL updated in Firestore");

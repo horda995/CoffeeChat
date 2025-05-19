@@ -52,13 +52,13 @@ public class SetUsernameActivity extends AppCompatActivity {
             String enteredUsername = usernameEditText.getText().toString().trim();
             InputCheckerUtils.validateNotNullOrEmpty(enteredUsername, "Username");
 
-            FirebaseUtils.checkIfAlreadyExistsInFirestore(SetUsernameActivity.this, mDatabase, "users", "username", enteredUsername, LOG_TAG, new FirebaseUtilsCallback() {
+            FirebaseUtils.checkIfAlreadyExistsInFirestore(SetUsernameActivity.this, mDatabase, "users", "username", enteredUsername, LOG_TAG, new FirebaseUtils.FirebaseUtilsCallback() {
                 @Override
                 public void onSuccess() {
                     String uid = mUser.getUid();
                     HashMap<String, Object> userMap = new HashMap<>();
                     userMap.put("username", enteredUsername);
-                    FirebaseUtils.updateCollectionOnFirestore(mDatabase, "users", uid, userMap, LOG_TAG, new FirebaseUtilsCallback() {
+                    FirebaseUtils.updateCollectionOnFirestore(mDatabase, "users", uid, userMap, LOG_TAG, new FirebaseUtils.FirebaseUtilsCallback() {
                         @Override
                         public void onSuccess() {
                             Log.d(LOG_TAG, "Username added");

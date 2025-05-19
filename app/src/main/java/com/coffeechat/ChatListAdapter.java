@@ -1,9 +1,9 @@
 package com.coffeechat;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -11,84 +11,76 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.google.android.material.imageview.ShapeableImageView;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatViewHolder> {
+public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatListViewHolder> {
 
-    private final List<OtherUser> chatList;
-    private final Context context;
-
-    private ChatListAdapter.OnItemClickListener listener;
-
+    private final List<OtherUser> users = new ArrayList<>();
+    private OnItemClickListener listener;
     public interface OnItemClickListener {
         void onItemClick(OtherUser user);
     }
-    private int position;
-
-    public ChatListAdapter(Context context, List<OtherUser> chatList) {
-        this.context = context;
-        this.chatList = chatList;
-    }
-    public void setOnItemClickListener(ChatListAdapter.OnItemClickListener listener) {
+    public void setOnItemClickListener(OnItemClickListener listener) {
         this.listener = listener;
     }
-    public static class ChatViewHolder extends RecyclerView.ViewHolder {
-        TextView nameTextView, messageTextView;
-        ShapeableImageView avatarImageView;
 
-        public ChatViewHolder(View itemView) {
-            super(itemView);
-            nameTextView = itemView.findViewById(R.id.chatListUserNameTextView);
-            messageTextView = itemView.findViewById(R.id.chatListMessageTextView);
-            avatarImageView = itemView.findViewById(R.id.chatlistUserAvatarImageView);
-        }
+
+    public void submitList(List<OtherUser> newList) {
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new UserDiffCallback(users, newList));
+        users.clear();
+        users.addAll(newList);
+        diffResult.dispatchUpdatesTo(this);
     }
+
 
     @NonNull
     @Override
-    public ChatViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.chatlist_list_item, parent, false);
-        return new ChatViewHolder(view);
+    public ChatListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.chatlist_list_item, parent, false);
+        return new ChatListViewHolder(view, listener, users);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ChatViewHolder holder, int position) {
-        OtherUser chat = chatList.get(position);
-        holder.nameTextView.setText(chat.getUserName());
-        holder.messageTextView.setText(chat.getLastMessage());
-
-        if (chat.getAvatarUrl() != null && !chat.getAvatarUrl().isEmpty()) {
-            Glide.with(context)
-                    .load(chat.getAvatarUrl())
-                    .placeholder(R.drawable.coffee_default_avatar)
-                    .into(holder.avatarImageView);
-        } else {
-            holder.avatarImageView.setImageResource(R.drawable.coffee_default_avatar);
-        }
+    public void onBindViewHolder(ChatListViewHolder holder, int position) {
+        OtherUser user = users.get(position);
+        holder.bind(user);
     }
 
     @Override
     public int getItemCount() {
-        return chatList.size();
+        return users.size();
     }
 
-    public void updateList(List<OtherUser> newList) {
-        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new UserDiffCallback(chatList, newList));
-        chatList.clear();
-        chatList.addAll(newList);
-        diffResult.dispatchUpdatesTo(this);
-    }
+    public static class ChatListViewHolder extends RecyclerView.ViewHolder {
+        private final TextView usernameTextView;
+        private final TextView lastMessageTextView;
+        private final ImageView avatarImageView;
 
-    public void updateLastMessage(String chatId, String messageText) {
-        for (int i = 0; i < chatList.size(); i++) {
-            OtherUser user = chatList.get(i);
-            if (user.getChatId().equals(chatId)) {
-                user.setLastMessage(messageText);
-                notifyItemChanged(i);
-                break;
-            }
+        public ChatListViewHolder(View itemView, OnItemClickListener listener, List<OtherUser> users) {
+            super(itemView);
+            usernameTextView = itemView.findViewById(R.id.chatListUserNameTextView);
+            avatarImageView = itemView.findViewById(R.id.chatlistUserAvatarImageView);
+            lastMessageTextView = itemView.findViewById(R.id.chatListMessageTextView);
+
+            itemView.setOnClickListener(v -> {
+                int position = getAdapterPosition();
+                if (listener != null && position != RecyclerView.NO_POSITION) {
+                    listener.onItemClick(users.get(position));
+                }
+            });
         }
+
+        public void bind(OtherUser user) {
+            usernameTextView.setText(user.getUserName());
+            lastMessageTextView.setText(user.getLastMessage());
+            Glide.with(itemView.getContext())
+                    .load(user.getAvatarUrl())
+                    .placeholder(R.drawable.coffee_default_avatar)
+                    .into(avatarImageView);
+        }
+
     }
 }

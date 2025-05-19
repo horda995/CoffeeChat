@@ -56,13 +56,14 @@ public class PeopleActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {}
         });
 
-
         userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
         adapter = new UserListAdapter();
         adapter.setOnItemClickListener(user -> {
             Log.d("username: ", user.getUserName());
             Log.d("avatar:", user.getAvatarUrl());
-            NavigationUtils.moveToChatActivity(PeopleActivity.this, user.getUserName(), user.getAvatarUrl(), user.getUid());
+            Log.d("otherUid:", user.getUid());
+            Log.d("chatId:", user.getChatId());
+            NavigationUtils.moveToChatActivity(PeopleActivity.this, user.getUserName(), user.getAvatarUrl(), user.getUid(), user.getChatId());
         });
         peopleRecyclerView = findViewById(R.id.peopleRecyclerView);
         peopleRecyclerView.setLayoutManager(new LinearLayoutManager(this));

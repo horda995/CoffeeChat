@@ -322,7 +322,7 @@ public class SettingsActivity extends AppCompatActivity {
         EditText changeUsernameEditText = dialogView.findViewById(R.id.changeUsernameEditText);
 
         String uid = mUser.getUid();
-        FirebaseUtils.readFieldFromFirestore(mDatabase, "users", uid, "username", new FirestoreReadFieldCallback() {
+        FirebaseUtils.readFieldFromFirestore(mDatabase, "users", uid, "username", new FirebaseUtils.FirestoreReadFieldCallback() {
             public void onFieldRetrieved(Object value) {
                 if (value != null) {
                     String userName = value.toString();
@@ -357,7 +357,7 @@ public class SettingsActivity extends AppCompatActivity {
             try {
                 String enteredUsername = changeUsernameEditText.getText().toString().trim();
                 InputCheckerUtils.validateNotNullOrEmpty(enteredUsername, "New username");
-                FirebaseUtils.readFieldFromFirestore(mDatabase, "users", uid, "username", new FirestoreReadFieldCallback() {
+                FirebaseUtils.readFieldFromFirestore(mDatabase, "users", uid, "username", new FirebaseUtils.FirestoreReadFieldCallback() {
                     @Override
                     public void onFieldRetrieved(Object value) {
                         String userName = value.toString();
@@ -368,7 +368,7 @@ public class SettingsActivity extends AppCompatActivity {
                         else {
                             HashMap<String, Object> userMap = new HashMap<>();
                             userMap.put("username", enteredUsername);
-                            FirebaseUtils.updateCollectionOnFirestore(mDatabase, "users", uid, userMap, LOG_TAG, new FirebaseUtilsCallback() {
+                            FirebaseUtils.updateCollectionOnFirestore(mDatabase, "users", uid, userMap, LOG_TAG, new FirebaseUtils.FirebaseUtilsCallback() {
                                 @Override
                                 public void onSuccess() {
                                     Log.d(LOG_TAG, "Username changed");

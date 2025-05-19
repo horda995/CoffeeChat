@@ -5,6 +5,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.media.AudioAttributes;
 import android.media.RingtoneManager;
+import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -30,6 +31,7 @@ public class CoffeeChatApp extends Application {
                 //noinspection unchecked
                 List<String> chatlist = (List<String>) documentSnapshot.get("chatlist");
                 if (chatlist != null) {
+                    Log.d("CoffeeChatApp", "Chatlist not NULL");
                     coffeeChatUser.startListening(mDatabase, coffeeChatUser.getUid(), chatlist, getApplicationContext());
                 }
             });

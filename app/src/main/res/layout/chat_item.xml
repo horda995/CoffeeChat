@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/chatConstraintLayout"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/chatUserNameTextViewLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:ellipsize="end"
+        android:fontFamily="sans-serif-black"
+        android:maxEms="30"
+        android:maxLines="1"
+        android:text=""
+        android:textColor="@android:color/black"
+        android:textSize="11sp"
+        app:layout_constraintBottom_toTopOf="@+id/chatBubbleTextView"
+        app:layout_constraintStart_toStartOf="@+id/chatBubbleTextView"
+        app:layout_constraintTop_toBottomOf="parent" />
+
+    <TextView
+        android:id="@+id/chatBubbleTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="2dp"
+        android:background="@drawable/chat_bubble_background"
+        android:fontFamily="sans-serif"
+        android:padding="5dp"
+        android:text=""
+        android:textColor="@android:color/white"
+        android:textSize="13sp"
+        android:maxWidth="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/chatUserNameTextViewLabel" />
+
+    <ImageButton
+        android:id="@+id/playPauseButton"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:src="@android:drawable/ic_media_play"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:visibility="gone"
+        android:contentDescription="@string/play_audio"
+        app:layout_constraintTop_toBottomOf="@+id/chatUserNameTextViewLabel"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

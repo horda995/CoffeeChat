@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DIALOG" />
-        <DropdownSelection timestamp="2025-05-12T16:47:38.381670993Z">
+        <DropdownSelection timestamp="2025-05-19T15:13:05.059541044Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=/home/horda995/.android/avd/Small_Phone_Fresher_Android.avd" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=d97287" />
             </handle>
           </Target>
         </DropdownSelection>

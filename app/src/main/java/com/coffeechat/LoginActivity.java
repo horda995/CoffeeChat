@@ -12,6 +12,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 
 public class LoginActivity extends AppCompatActivity {
@@ -46,11 +47,20 @@ public class LoginActivity extends AppCompatActivity {
         String email = loginEmail.getText().toString().trim();
         String password = loginPassword.getText().toString().trim();
 
-        FirebaseUtils.performLogin(LoginActivity.this, mAuth, mDatabase, email, password, LOG_TAG, new LoginCallback() {
+        FirebaseUtils.performLogin(LoginActivity.this, mAuth, mDatabase, email, password, LOG_TAG, new FirebaseUtils.LoginCallback() {
             @Override
             public void onSuccess(FirebaseUser currentUser) {
                 coffeeChatUser.setEmail(currentUser.getEmail());
                 coffeeChatUser.setUid(currentUser.getUid());
+                FirebaseMessaging.getInstance().getToken()
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                String token = task.getResult();
+                                FirebaseFirestore.getInstance().collection("users")
+                                        .document(coffeeChatUser.getUid())
+                                        .update("fcmToken", token);
+                            }
+                        });
                 Log.d(LOG_TAG, "Login was successful");
             }
             @Override

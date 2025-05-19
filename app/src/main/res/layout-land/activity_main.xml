@@ -10,26 +10,31 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="250dp"
-        android:layout_height="250dp"
-        android:layout_marginTop="20dp"
+        android:layout_width="229dp"
+        android:layout_height="236dp"
         android:contentDescription="@string/appLogoDescription"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.161"
         app:srcCompat="@drawable/coffee_mug" />
 
     <TextView
         android:id="@+id/appLogoLogin"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_width="318dp"
+        android:layout_height="47dp"
+        android:layout_marginTop="16dp"
         android:fontFamily="@font/coffee_town"
+        android:shadowColor="@color/dirty_white"
+        android:shadowDx="7"
+        android:shadowRadius="5"
         android:text="@string/appTitleString"
         android:textColor="@color/coffeeBrown"
         android:textSize="55sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
 </androidx.constraintlayout.widget.ConstraintLayout>

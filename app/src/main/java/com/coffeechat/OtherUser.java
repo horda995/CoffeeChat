@@ -1,18 +1,22 @@
 package com.coffeechat;
 
+import com.google.firebase.Timestamp;
+
 public class OtherUser {
     private String username;
     private String uid;
     private String avatarUrl;
     private String lastMessage;
     private String chatId;
+    private Timestamp timestamp;
 
-    public OtherUser(String username, String avatarUrl, String uid, String lastMessage, String chatId) {
+    public OtherUser(String username, String avatarUrl, String uid, String lastMessage, String chatId, Timestamp timestamp) {
         this.username = username;
         this.avatarUrl = avatarUrl;
         this.uid = uid;
         this.lastMessage = lastMessage;
         this.chatId = chatId;
+        this.timestamp = timestamp;
     }
 
     public String getUserName() {
@@ -53,5 +57,9 @@ public class OtherUser {
 
     public void setChatId(String chatId) {
         this.chatId = chatId;
+    }
+
+    public Timestamp getTimestamp() {
+        return timestamp;
     }
 }
