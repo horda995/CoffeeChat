@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "com.coffeechat"
-        minSdk 23
+        minSdk 26
         //noinspection OldTargetApi
         targetSdk 35
         versionCode 1
@@ -48,4 +48,5 @@ dependencies {
     implementation libs.ucrop
     implementation libs.glide
     annotationProcessor libs.compiler
+    implementation 'com.google.firebase:firebase-messaging:24.1.1'
 }

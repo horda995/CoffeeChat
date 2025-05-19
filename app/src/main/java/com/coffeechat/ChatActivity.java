@@ -1,13 +1,22 @@
 package com.coffeechat;
 
-import android.content.Context;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -17,7 +26,10 @@ import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
 
+import java.io.File;
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +44,11 @@ public class ChatActivity extends AppCompatActivity {
     ShapeableImageView avatarImageView;
     TextView chatUsernameTextView;
     EditText chatInput;
+
+    private MediaRecorder recorder;
+    private File audioFile;
+    private Handler handler = new Handler(Looper.getMainLooper());
+    private ImageView micIcon;
     private FirebaseAuth mAuth;
     private FirebaseUser mUser;
     FirebaseFirestore mDatabase;
@@ -45,6 +62,7 @@ public class ChatActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        micIcon = findViewById(R.id.sendSoundMessageIcon);
         username = getIntent().getStringExtra("username");
         avatarUrl = getIntent().getStringExtra("avatarUrl");
         otherUserUid = getIntent().getStringExtra("uid");
@@ -120,4 +138,62 @@ public class ChatActivity extends AppCompatActivity {
             Log.w("chatInput", "Message is empty");
         }
     }
+
+    public void recordMessageOnClick(View view) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 101);
+            return;
+        }
+
+        try {
+            micIcon.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_red_dark));
+            audioFile = File.createTempFile("voice_", ".m4a", getCacheDir());
+
+            recorder = new MediaRecorder();
+            recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            recorder.setOutputFile(audioFile.getAbsolutePath());
+            recorder.prepare();
+            recorder.start();
+
+            handler.postDelayed(this::stopRecordingAndUpload, 10_000);
+
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "IO error" + e);
+        }
+    }
+
+    private void stopRecordingAndUpload() {
+        try {
+            recorder.stop();
+            recorder.release();
+            recorder = null;
+
+            micIcon.setColorFilter(null);
+            uploadAudioToFirebase(audioFile);
+
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "error:" + e);
+        }
+    }
+
+    private void uploadAudioToFirebase(File file) {
+        Uri fileUri = Uri.fromFile(file);
+        String fileName = "voiceMessages/" + System.currentTimeMillis() + ".m4a";
+
+        FirebaseStorage.getInstance().getReference(fileName)
+                .putFile(fileUri)
+                .addOnSuccessListener(taskSnapshot -> {
+                    taskSnapshot.getStorage().getDownloadUrl().addOnSuccessListener(uri -> {
+                        Toast.makeText(getApplicationContext(), "Audio uploaded", Toast.LENGTH_LONG).show();
+                        String downloadUrl = uri.toString();
+                        Log.d("AudioUpload", "Download URL: " + downloadUrl);
+                    });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("AudioUpload", "Upload failed", e);
+                });
+    }
+
 }

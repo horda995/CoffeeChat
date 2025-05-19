@@ -20,11 +20,20 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
     private final List<OtherUser> chatList;
     private final Context context;
 
+    private ChatListAdapter.OnItemClickListener listener;
+
+    public interface OnItemClickListener {
+        void onItemClick(OtherUser user);
+    }
+    private int position;
+
     public ChatListAdapter(Context context, List<OtherUser> chatList) {
         this.context = context;
         this.chatList = chatList;
     }
-
+    public void setOnItemClickListener(ChatListAdapter.OnItemClickListener listener) {
+        this.listener = listener;
+    }
     public static class ChatViewHolder extends RecyclerView.ViewHolder {
         TextView nameTextView, messageTextView;
         ShapeableImageView avatarImageView;
@@ -40,7 +49,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
     @NonNull
     @Override
     public ChatViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.chatlist_list_item, parent, false); // Replace with your actual layout name
+        View view = LayoutInflater.from(context).inflate(R.layout.chatlist_list_item, parent, false);
         return new ChatViewHolder(view);
     }
 
@@ -50,7 +59,6 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
         holder.nameTextView.setText(chat.getUserName());
         holder.messageTextView.setText(chat.getLastMessage());
 
-        // Load avatar image
         if (chat.getAvatarUrl() != null && !chat.getAvatarUrl().isEmpty()) {
             Glide.with(context)
                     .load(chat.getAvatarUrl())
@@ -71,5 +79,16 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
         chatList.clear();
         chatList.addAll(newList);
         diffResult.dispatchUpdatesTo(this);
+    }
+
+    public void updateLastMessage(String chatId, String messageText) {
+        for (int i = 0; i < chatList.size(); i++) {
+            OtherUser user = chatList.get(i);
+            if (user.getChatId().equals(chatId)) {
+                user.setLastMessage(messageText);
+                notifyItemChanged(i);
+                break;
+            }
+        }
     }
 }

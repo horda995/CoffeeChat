@@ -174,13 +174,12 @@ public class ImageUtils {
                             .addOnSuccessListener(uri -> {
                                 if (avatarImageView != null) {
                                     Glide.with(activity.getApplicationContext())
-                                            .load(uri)  // load the Uri, not StorageReference
+                                            .load(uri)
                                             .placeholder(R.drawable.coffee_default_avatar)
                                             .error(R.drawable.coffee_default_avatar)
                                             .into(avatarImageView);
                                 }
 
-                                // Load bitmap off main thread if needed
                                 new Thread(() -> {
                                     try {
                                         Bitmap bitmap = Glide.with(activity.getApplicationContext())

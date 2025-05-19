@@ -110,16 +110,13 @@ public class FirebaseUtils {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
         if (currentUser != null) {
-            currentUser.getIdToken(true) // Force refresh the token
+            currentUser.getIdToken(true)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            // Token refreshed, now you can safely proceed to check Firestore or continue
-                            // Optionally re-check if their Firestore data exists
                             final String uid = currentUser.getUid();
                             FirebaseFirestore.getInstance().collection("users").document(uid).get()
                                     .addOnSuccessListener(documentSnapshot -> {
                                         if (!documentSnapshot.exists()) {
-                                            // Firestore user record was deleted – force sign out
                                             FirebaseAuth.getInstance().signOut();
                                             NavigationUtils.moveToLoginActivity(activity);
                                         }
@@ -264,7 +261,6 @@ public class FirebaseUtils {
                     addCollectionToFirestore(db, usersCollectionPath, uid, userMap, LOG_TAG, new FirebaseUtilsCallback() {
                         @Override
                         public void onSuccess() {
-                            // Move to another activity
                             coffeeChatUser.setEmail(email);
                             coffeeChatUser.setUid(uid);
                             Log.d(LOG_TAG, "User created.");
@@ -318,7 +314,6 @@ public class FirebaseUtils {
                     .delete()
                     .addOnSuccessListener(aVoid -> {
                         Log.d(LOG_TAG, "User data successfully deleted from Firestore");
-                        //delete FirebaseAuth account
                         currentUser.delete()
                                 .addOnSuccessListener(bVoid -> {
                                     Log.d(LOG_TAG, "Account successfully deleted.");
@@ -377,14 +372,14 @@ public class FirebaseUtils {
         chatRef.get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {
                 Log.d("addChatToChatCollection", "Chat with ID " + chatId + " already exists.");
-                if (onComplete != null) onComplete.run();  // still trigger if chat exists
+                if (onComplete != null) onComplete.run();
             } else {
                 HashMap<String, Object> chatData = new HashMap<>();
                 chatData.put("uid", userId);
                 chatRef.set(chatData)
                         .addOnSuccessListener(aVoid -> {
                             Log.d("addChatToChatCollection", "Chat created successfully with ID: " + chatId);
-                            addChatToUserChatList(db, userId, chatId, onComplete);  // pass callback
+                            addChatToUserChatList(db, userId, chatId, onComplete);
                         })
                         .addOnFailureListener(e -> Log.e("addChatToChatCollection", "Failed to create chat", e));
             }
@@ -433,10 +428,8 @@ public class FirebaseUtils {
 
         messageRef.get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {
-                // If ID exists, try again
                 addMessageWithUniqueId(db, chatId, sentByUid, messageText, soundUrl, attempt + 1, chatInput);
             } else {
-                // ID is unique, proceed to add
                 HashMap<String, Object> data = new HashMap<>();
                 data.put("chatId", chatId);
                 data.put("sentByUid", sentByUid);

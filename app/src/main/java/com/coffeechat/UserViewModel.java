@@ -21,7 +21,7 @@ public class UserViewModel extends ViewModel {
         return userList;
     }
 
-    public void startListeningForUsers(FirebaseFirestore db, String excludeUsername) {
+     public void startListeningForUsers(FirebaseFirestore db, String excludeUsername) {
         if (userListener != null) {
             userListener.remove();
         }
@@ -41,7 +41,7 @@ public class UserViewModel extends ViewModel {
                             String username = doc.getString("username");
                             String avatarUrl = doc.getString("avatarPicture");
                             String uid = doc.getString("uid");
-                            users.add(new OtherUser(username, avatarUrl, uid, "Not here"));
+                            users.add(new OtherUser(username, avatarUrl, uid, "Not here", "No"));
                         }
                         userList.setValue(users);
                     } else {

@@ -78,7 +78,7 @@ public class PeopleActivity extends AppCompatActivity {
         FirebaseUtils.checkAndUpdateEmailIfNeeded(PeopleActivity.this, mDatabase, mAuth, LOG_TAG);
         userViewModel.getUserList().observe(this, users -> adapter.submitList(users));
         userViewModel.getFilteredUsers().observe(this, users -> {
-            adapter.submitList(users); // or adapter.setUsers(users); then notifyDataSetChanged()
+            adapter.submitList(users);
         });
         userViewModel.startListeningForUsers(mDatabase, coffeeChatUser.getUsername());
     }

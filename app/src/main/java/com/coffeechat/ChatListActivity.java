@@ -4,6 +4,8 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 
@@ -41,6 +43,7 @@ public class ChatListActivity extends AppCompatActivity {
     FirebaseUser mUser;
     FirebaseFirestore mDatabase;
 
+    protected List<OtherUser> chatList = new ArrayList<>();
     CoffeeChatUser coffeeChatUser = CoffeeChatUser.getInstance();
     ShapeableImageView avatarImageView;
     TextView username;
@@ -55,8 +58,13 @@ public class ChatListActivity extends AppCompatActivity {
         });
         recyclerView = findViewById(R.id.chatListRecyclerView);
         adapter = new ChatListAdapter(this, new ArrayList<>());
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
+        CoffeeChatUser.getInstance().setOnNewMessageListener((chatId, messageText) -> {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                adapter.updateLastMessage(chatId, messageText);
+            });
+        });
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         settingsIcon = findViewById(R.id.settingsIcon);
         avatarImageView = findViewById(R.id.AvatarImageView);
         username = findViewById(R.id.usernameLabel);
@@ -94,7 +102,6 @@ public class ChatListActivity extends AppCompatActivity {
                         }
                     }
                     coffeeChatUser.setChatList(chatList);
-                    coffeeChatUser.startListening(mDatabase, mUser.getUid(), coffeeChatUser.getChatList(), ChatListActivity.this);
                     loadChatPreviews();
                 } else {
                     Log.e(LOG_TAG, "chatlist field is not a List");
@@ -109,78 +116,63 @@ public class ChatListActivity extends AppCompatActivity {
 
     }
 
+    /** @noinspection unchecked*/
     private void loadChatPreviews() {
+        List<OtherUser> previewList = new ArrayList<>();
 
-        if (mUser == null) return;
-        mDatabase.collection("users").document(mUser.getUid()).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    //noinspection unchecked
-                    List<String> chatlist = (List<String>) documentSnapshot.get("chatlist");
-                    if (chatlist != null) {
-                        fetchChats(chatlist);
+        mDatabase.collection("chats")
+                .whereArrayContains("uid", coffeeChatUser.getUid())
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (querySnapshot.isEmpty()) {
+                        Log.d("fetchChats", "No chats found.");
+                        return;
+                    }
+
+                    for (DocumentSnapshot chatDoc : querySnapshot.getDocuments()) {
+                        List<String> uidList = (List<String>) chatDoc.get("uid");
+
+                        if (uidList == null || uidList.size() != 2) continue;
+
+                        String otherUid = uidList.get(0).equals(coffeeChatUser.getUid()) ? uidList.get(1) : uidList.get(0);
+                        String chatId = chatDoc.getId();
+
+                        mDatabase.collection("messages")
+                                .whereEqualTo("chatId", chatId)
+                                .orderBy("timestamp", Query.Direction.DESCENDING)
+                                .limit(1)
+                                .get()
+                                .addOnSuccessListener(messageSnapshot -> {
+                                    final String lastMessageText;
+                                    if (!messageSnapshot.isEmpty()) {
+                                        DocumentSnapshot lastMessageDoc = messageSnapshot.getDocuments().get(0);
+                                        lastMessageText = lastMessageDoc.getString("messageText");
+                                    } else {
+                                        lastMessageText = "No messages yet";
+                                    }
+
+                                    mDatabase.collection("users")
+                                            .document(otherUid)
+                                            .get()
+                                            .addOnSuccessListener(userDoc -> {
+                                                if (userDoc.exists()) {
+                                                    String username = userDoc.getString("username");
+                                                    String avatar = userDoc.getString("avatarPicture");
+
+                                                    previewList.add(new OtherUser(username, avatar, otherUid, lastMessageText, chatId));
+                                                    chatList.clear();
+                                                    chatList.addAll(previewList);
+                                                    adapter.updateList(chatList);
+
+                                                }
+                                            });
+                                });
                     }
                 });
     }
 
-    private void fetchChats(List<String> chatIds) {
-        if (chatIds == null || chatIds.isEmpty()) {
-            Log.d("fetchChats", "chatId list is empty");
-            return;
-        }
 
-        List<OtherUser> previewList = new ArrayList<>();
-        int[] completedCount = {0};
 
-        for (String chatId : chatIds) {
-            Log.d("fetchChats", "Fetching last message for chatId: " + chatId);
-            mDatabase.collection("messages")
-                    .whereEqualTo("chatId", chatId)
-                    .orderBy("timestamp", Query.Direction.DESCENDING)
-                    .limit(1)
-                    .get()
-                    .addOnSuccessListener(querySnapshot -> {
-                        if (!querySnapshot.isEmpty()) {
-                            DocumentSnapshot messageDoc = querySnapshot.getDocuments().get(0);
-                            String messageText = messageDoc.getString("messageText");
-                            String sentByUid = messageDoc.getString("sentByUid");
-                            String sentByName = messageDoc.getString("sentByName");
-                            Log.d("fetchChats", "Message found: " + messageText + " by " + sentByName + "(" + sentByUid + ")");
-                            if (sentByUid != null) {
-                                mDatabase.collection("users").document(sentByUid).get()
-                                        .addOnSuccessListener(userDoc -> {
-                                            String name = userDoc.getString("username");
-                                            String avatarUrl = userDoc.getString("avatarPicture");
-                                            Log.d("fetchChats", "User fetched: " + name);
-                                            previewList.add(new OtherUser(name, avatarUrl, chatId, messageText));
-                                            checkAndUpdateAdapter(previewList, ++completedCount[0], chatIds.size());
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            Log.e("fetchChats", "Failed to fetch user: " + sentByUid, e);
-                                            checkAndUpdateAdapter(previewList, ++completedCount[0], chatIds.size());
-                                        });
-                            } else {
-                                Log.d("fetchChats", "sentByUid is null");
-                                checkAndUpdateAdapter(previewList, ++completedCount[0], chatIds.size());
-                            }
-                        } else {
-                            Log.d("fetchChats", "No messages for chatId: " + chatId);
-                            checkAndUpdateAdapter(previewList, ++completedCount[0], chatIds.size());
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e("fetchChats", "Failed to fetch message for chatId: " + chatId, e);
-                        checkAndUpdateAdapter(previewList, ++completedCount[0], chatIds.size());
-                    });
-        }
-    }
-
-    private void checkAndUpdateAdapter(List<OtherUser> list, int completed, int total) {
-        Log.d("fetchChats", "Completed " + completed + "/" + total);
-        if (completed == total) {
-            Log.d("fetchChats", "All fetches done. Updating adapter with " + list.size() + " items.");
-            adapter.updateList(list);
-        }
-    }
 
     private void SpinAnimation() {
         ObjectAnimator rotateAnimator = ObjectAnimator.ofFloat(settingsIcon, "rotation", 0f, 360f);

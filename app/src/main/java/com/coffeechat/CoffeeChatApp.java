@@ -1,6 +1,10 @@
 package com.coffeechat;
 
 import android.app.Application;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.media.AudioAttributes;
+import android.media.RingtoneManager;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -18,7 +22,7 @@ public class CoffeeChatApp extends Application {
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         FirebaseUser mUser = mAuth.getCurrentUser();
         FirebaseFirestore mDatabase = FirebaseFirestore.getInstance();
-
+        createNotificationChannel();
         if (mUser != null) {
             coffeeChatUser.setUid(mUser.getUid());
             FirebaseUtils.checkAndUpdateEmailIfNeeded(getApplicationContext(), mDatabase, mAuth, "Email-check");
@@ -29,6 +33,26 @@ public class CoffeeChatApp extends Application {
                     coffeeChatUser.startListening(mDatabase, coffeeChatUser.getUid(), chatlist, getApplicationContext());
                 }
             });
+        }
+    }
+
+    private void createNotificationChannel() {
+        String channelId = "messages_channel";
+        CharSequence name = "Message Notifications";
+        String description = "Notifications for new messages";
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+        NotificationChannel channel = new NotificationChannel(channelId, name, importance);
+        channel.setDescription(description);
+        channel.enableVibration(true);
+        channel.enableLights(true);
+        channel.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
+                new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                        .build());
+
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        if (manager != null) {
+            manager.createNotificationChannel(channel);
         }
     }
 }

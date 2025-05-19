@@ -201,13 +201,9 @@ public class SettingsActivity extends AppCompatActivity {
         FirebaseUtils.checkLogin(SettingsActivity.this);
         mDatabase = FirebaseFirestore.getInstance();
         FirebaseUtils.checkAndUpdateEmailIfNeeded(SettingsActivity.this, mDatabase, mAuth, LOG_TAG);
-        //coffeeChatUser.startListening(mDatabase, mUser.getUid(), coffeeChatUser.getChatList(), SettingsActivity.this);
+
     }
 
-    /*protected void onDestroy() {
-        super.onDestroy();
-        coffeeChatUser.stopListening();
-    }*/
 
     private void logOut() {
         CoffeeChatUser.deleteCoffeeChatUserInstance();
